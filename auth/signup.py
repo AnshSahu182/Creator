@@ -89,4 +89,6 @@ def callback():
         "access_token": access_token,
         "refresh_token": refresh_token
     })
-
+    # return redirect(
+    #     f"https://imprecatory-grady-biophysically.ngrok-free.dev/dashboard?access_token={access_token}"
+    # )
