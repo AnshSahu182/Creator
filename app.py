@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask import jsonify
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 from flask_bcrypt import Bcrypt
 
@@ -11,7 +11,7 @@ from database.mongo import init_mongo,mongo
 from auth.signup import google_signup,callback
 from oauth_config import oauth
 # Load env vars
-load_dotenv()
+# load_dotenv()
 
 # Flask app
 app = Flask(__name__)
@@ -60,12 +60,14 @@ from integrations.youtube import youtube_bp
 from auth.login import login_bp
 from auth.signup2 import signup_bp
 from users.profile import profile_bp
+from preregister.preregister import preregister_bp
 
 # app.register_blueprint(google_auth_bp, url_prefix="/api/auth")
 app.register_blueprint(youtube_bp, url_prefix="/api")
 app.register_blueprint(login_bp, url_prefix="/api/auth")
 app.register_blueprint(signup_bp, url_prefix="/api/auth")
 app.register_blueprint(profile_bp, url_prefix="/api")
+app.register_blueprint(preregister_bp, url_prefix="/api")
 # ---------------- HEALTH CHECK ----------------
 @app.route("/health", methods=["GET"])
 def health_check():
@@ -97,4 +99,6 @@ def callback_route():
 
 # ---------------- RUN APP ----------------
 if __name__ == "__main__":
+    from dotenv import load_dotenv
+    load_dotenv()
     app.run(debug=True, port=3000)

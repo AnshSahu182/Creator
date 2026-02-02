@@ -37,7 +37,7 @@ google = oauth.register(
 # @app.route('/googlesignup', methods=['GET'])
 def google_signup():
     return oauth.google.authorize_redirect(
-        "https://interepithelial-unlunate-colt.ngrok-free.dev/api/auth/callback"
+        "https://creator-t9nt.onrender.com/api/auth/callback"
     )
 
 #Callback (Direct google login ka data deta h )
@@ -89,6 +89,4 @@ def callback():
         "access_token": access_token,
         "refresh_token": refresh_token
     })
-    # return redirect(
-    #     f"https://imprecatory-grady-biophysically.ngrok-free.dev/dashboard?access_token={access_token}"
-    # )
+
