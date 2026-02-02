@@ -1,5 +1,8 @@
 from cryptography.fernet import Fernet
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 fernet = Fernet(os.getenv("FERNET_KEY"))
 
