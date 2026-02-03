@@ -7,7 +7,7 @@ import os
 from flask_bcrypt import Bcrypt
 
 # from auth.extensions import oauth
-from database import init_mongo,mongo
+from database.mongo import init_mongo,mongo
 from auth.signup import google_signup,callback
 from oauth_config import oauth
 # Load env vars
