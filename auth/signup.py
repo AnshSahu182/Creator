@@ -1,89 +1,66 @@
-from flask import request,jsonify, url_for
-#from authlib.integrations.flask_client import OAuth # for login
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import create_access_token, create_refresh_token
+from datetime import timedelta
+from flask_bcrypt import Bcrypt   # if using flask-bcrypt
+from datetime import datetime
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
-from flask_bcrypt import Bcrypt
-from flask_jwt_extended import create_access_token, create_refresh_token
-from datetime import datetime
-from oauth_config import oauth
-from utils.encryption import encrypt_token
-
 load_dotenv()
 
-bcrypt=Bcrypt()
+bcrypt = Bcrypt()
 
-client=MongoClient(os.getenv('MongoClient_URI'))
-db=client["creator_platfrom"]
-users=db["users"]
-social_accounts=db["social_accounts"]
+client = MongoClient(os.getenv("MONGO_URI"))
+db = client['creator_platform']
+users = db['users']
 
-# 🔑 Google OAuth Configuration
-google = oauth.register(
-    name='google',
-    client_id=os.getenv('CLIENT_ID'),
-    client_secret=os.getenv('CLIENT_SECRET'),
-    access_token_url='https://oauth2.googleapis.com/token',
-    authorize_url='https://accounts.google.com/o/oauth2/v2/auth',
-    api_base_url='https://www.googleapis.com/oauth2/v2/',
-    client_kwargs={'scope': 'openid email profile'},
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
-)
+signup_bp = Blueprint('signup', __name__)
 
+@signup_bp.route('/signup', methods=['POST'])
+def signup():
+    try:
+        data = request.get_json()
+        fullName = data.get('fullName')
+        email = data.get('email')
+        password = data.get('password')
 
-# Sign up using google
-# @app.route('/googlesignup', methods=['GET'])
-def google_signup():
-    return oauth.google.authorize_redirect(
-        "http://localhost:5000/api/auth/callback"
-    )
+        # check existing user
+        if users.find_one({"email": email}):
+            return jsonify({"error": "User already exists"}), 400
 
-#Callback (Direct google login ka data deta h )
-#@app.route("/callback", methods=['GET'])
-#data here does not go to server it goes to google and it send redirected url that is why there is GET 
-def callback():
-    token = oauth.google.authorize_access_token()
+        # hash password
+        hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
-    google_refresh_token = token.get("refresh_token")
+        refresh_token = create_refresh_token(identity=email)
 
-    user_info = oauth.google.get("userinfo").json()
-    email = user_info.get("email")
-    name = user_info.get("name")
-    picture = user_info.get("picture")
+        # insert user FIRST
+        result = users.insert_one({
+            "fullName": fullName,
+            "email": email,
+            "password": hashed_password,
+            "plan": "free",
+            "refresh_token": refresh_token,
+            "createdAt": datetime.utcnow(),
+            "updatedAt": datetime.utcnow()
+        })
 
-    if google_refresh_token:
-        social_accounts.update_one(
-            {"email": email, "provider": "youtube"},
-            {
-                "$set": {
-                    "refreshToken": encrypt_token(google_refresh_token),
-                    "connectedAt": datetime.utcnow()
-                }
-            },
-            upsert=True
+        user_id = str(result.inserted_id)
+
+        # now create tokens
+        access_token = create_access_token(
+            identity=email,
+            expires_delta=timedelta(minutes=15)
         )
 
-    access_token = create_access_token(identity=email)
-    refresh_token = create_refresh_token(identity=email)
-
-    users.update_one(
-        {"email": email},
-        {
-            "$set": {
-                "fullName": name,
-                "image": picture,
-                "refresh_token": refresh_token,
-                "updatedAt": datetime.utcnow()
-            },
-            "$setOnInsert": {
-                "createdAt": datetime.utcnow()
+        return jsonify({
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "user": {
+                "id": user_id,
+                "email": email,
+                "plan": "free",
             }
-        },
-        upsert=True
-    )
+        }), 201
 
-    return jsonify({
-        "success": True,
-        "access_token": access_token,
-        "refresh_token": refresh_token
-    })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

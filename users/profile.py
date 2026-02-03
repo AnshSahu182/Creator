@@ -1,6 +1,13 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from database.mongo import mongo
+from pymongo import MongoClient
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
+client = MongoClient(os.getenv("MONGO_URI"))
+db = client['creator_platform']
+users = db['users']
 
 profile_bp = Blueprint("profile", __name__)
 
@@ -18,7 +25,7 @@ def get_me():
 
         # ❌ above is too complex, so instead do this 👇
         from bson import ObjectId
-        user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+        user = users.find_one({"_id": ObjectId(user_id)})
 
         if not user:
             return jsonify({"error": "User not found"}), 404

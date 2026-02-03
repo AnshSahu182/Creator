@@ -2,10 +2,16 @@ from datetime import timedelta
 from flask import Blueprint,request,jsonify
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, create_refresh_token
-
-from database.mongo import mongo
+from pymongo import MongoClient
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 bcrypt = Bcrypt()
+
+client = MongoClient(os.getenv("MONGO_URI"))
+db = client['creator_platform']
+users = db['users']
 
 login_bp = Blueprint('login', __name__)
 
@@ -20,7 +26,7 @@ def login():
         return jsonify({'error': 'Email and password are required'}), 400
 
     try:
-        user = mongo.db.users.find_one({'email': email})
+        user = users.find_one({'email': email})
 
         if not user:
             return jsonify({'error': 'Invalid email or password'}), 401
