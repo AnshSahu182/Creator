@@ -41,14 +41,12 @@ google = oauth.register(
 # Sign up using google
 # @app.route('/googlesignup', methods=['GET'])
 def google_signup():
-    return oauth.google.authorize_redirect(
-        "https://creator-t9nt.onrender.com/api/auth/callback"
-    )
+    return oauth.google.authorize_redirect(os.getenv('CALLBACK_URL'))
 
 # ---------------- CALLBACK ----------------
 def callback():
     token = oauth.google.authorize_access_token()
-    print( json.dumps(token, indent=2) )
+    # print( json.dumps(token, indent=2) )
 
     new_refresh_token = token.get("refresh_token")
     # print ("Google OAuth token:", new_refresh_token)
@@ -66,7 +64,7 @@ def callback():
 
     if new_refresh_token:
         # ✅ Google gave a new refresh token
-        encrypted = new_refresh_token
+        encrypted = encrypt_token(new_refresh_token)
 
         social_accounts.update_one(
             {"email": email, "provider": "youtube"},

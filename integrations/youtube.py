@@ -13,7 +13,7 @@ def youtube_dashboard():
     try:
         email = get_jwt_identity()
         access_token = get_youtube_access_token(email)
-        print("YouTube Access Token: #################################")
+        # print("YouTube Access Token: #################################")
 
         response = requests.get(
             "https://www.googleapis.com/youtube/v3/channels",
@@ -23,8 +23,8 @@ def youtube_dashboard():
                 "mine": True
             }
         )
-        print("YouTube API status:", response.status_code)
-        print("YouTube API response:", response.text)
+        # print("YouTube API status:", response.status_code)
+        # print("YouTube API response:", response.text)
 
         data = response.json()
         channel = data["items"][0]
