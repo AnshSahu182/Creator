@@ -3,11 +3,9 @@ from flask import request,jsonify, url_for
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
-from datetime import datetime
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, create_refresh_token
 from datetime import datetime
-from flask import redirect
 from oauth_config import oauth
 from utils.encryption import encrypt_token
 
@@ -37,7 +35,7 @@ google = oauth.register(
 # @app.route('/googlesignup', methods=['GET'])
 def google_signup():
     return oauth.google.authorize_redirect(
-        "https://creator-t9nt.onrender.com/api/auth/callback"
+        "http://localhost:5000/api/auth/callback"
     )
 
 #Callback (Direct google login ka data deta h )
@@ -89,6 +87,3 @@ def callback():
         "access_token": access_token,
         "refresh_token": refresh_token
     })
-    # return redirect(
-    #     f"https://imprecatory-grady-biophysically.ngrok-free.dev/dashboard?access_token={access_token}"
-    # )

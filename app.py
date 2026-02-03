@@ -69,7 +69,7 @@ app.register_blueprint(signup_bp, url_prefix="/api/auth")
 app.register_blueprint(profile_bp, url_prefix="/api")
 app.register_blueprint(preregister_bp, url_prefix="/api")
 # ---------------- HEALTH CHECK ----------------
-@app.route("/health", methods=["GET"])
+@app.route("/", methods=["GET"])
 def health_check():
     try:
         # simple MongoDB ping
